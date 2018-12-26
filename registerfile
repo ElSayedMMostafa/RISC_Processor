@@ -1,0 +1,83 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+
+entity registerfile is 
+port( clk ,WE3 : in  std_logic;
+      A1,A2,A3 : in  std_logic_vector (3  downto 0);
+      RD1,RD2  : out std_logic_vector (31 downto 0);
+      WD3      : in  std_logic_vector (31 downto 0);
+      R15      : in  std_logic_vector (31 downto 0));
+end registerfile ; 
+architecture rtl of registerfile is 
+component register_32bit is 
+port ( regin     : in std_logic_vector (31 downto 0);
+       clk    : in std_logic;
+       en     : in std_logic;
+       regout : out std_logic_vector (31 downto 0));
+end component ;
+component mux16_1 is 
+port ( d0sig,d1sig,d2sig,d3sig,d4sig,d5sig,d6sig,d7sig : in std_logic_vector( 31 downto 0 );
+       d8sig,d9sig,d10sig,d11sig,d12sig,d13sig,d14sig,d15sig : in std_logic_vector( 31 downto 0 );
+       s : in std_logic_vector( 3 downto 0 );
+       y : out std_logic_vector(31 downto 0) ) ;
+end component;
+component dec4_16WE is
+port ( WE : in std_logic ; 
+        A3 : in std_logic_vector (3 downto 0 );
+        decout : out std_logic_vector (15 downto 0 ));
+end component ; 
+component r15scp is
+port ( regin     : in std_logic_vector (31 downto 0);
+       clk    : in std_logic;
+       regout : out std_logic_vector (31 downto 0));
+end component;
+
+signal reg0temp  : std_logic_vector (31 downto 0);
+signal reg1temp  : std_logic_vector (31 downto 0);
+signal reg2temp  : std_logic_vector (31 downto 0);
+signal reg3temp  : std_logic_vector (31 downto 0);
+signal reg4temp  : std_logic_vector (31 downto 0);
+signal reg5temp  : std_logic_vector (31 downto 0);
+signal reg6temp  : std_logic_vector (31 downto 0);
+signal reg7temp  : std_logic_vector (31 downto 0);
+signal reg8temp  : std_logic_vector (31 downto 0);
+signal reg9temp  : std_logic_vector (31 downto 0);
+signal reg10temp : std_logic_vector (31 downto 0);
+signal reg11temp : std_logic_vector (31 downto 0);
+signal reg12temp : std_logic_vector (31 downto 0);
+signal reg13temp : std_logic_vector (31 downto 0);
+signal reg14temp : std_logic_vector (31 downto 0);
+signal reg15temp : std_logic_vector (31 downto 0);
+
+signal dectemp : std_logic_vector (15 downto 0);
+
+begin 
+decreg : dec4_16WE port map (WE3 , A3 , dectemp ); --decoder--
+
+--registers--
+reg0scp  : register_32bit port map ( WD3 , clk , dectemp(0)  ,reg0temp );
+reg1scp  : register_32bit port map ( WD3 , clk , dectemp(1)  ,reg1temp );
+reg2scp  : register_32bit port map ( WD3 , clk , dectemp(2)  ,reg2temp );
+reg3scp  : register_32bit port map ( WD3 , clk , dectemp(3)  ,reg3temp );
+reg4scp  : register_32bit port map ( WD3 , clk , dectemp(4)  ,reg4temp );
+reg5scp  : register_32bit port map ( WD3 , clk , dectemp(5)  ,reg5temp );
+reg6scp  : register_32bit port map ( WD3 , clk , dectemp(6)  ,reg6temp );
+reg7scp  : register_32bit port map ( WD3 , clk , dectemp(7)  ,reg7temp );
+reg8scp  : register_32bit port map ( WD3 , clk , dectemp(8)  ,reg8temp );
+reg9scp  : register_32bit port map ( WD3 , clk , dectemp(9)  ,reg9temp );
+reg10scp : register_32bit port map ( WD3 , clk , dectemp(10) ,reg10temp);
+reg11scp : register_32bit port map ( WD3 , clk , dectemp(11) ,reg11temp);
+reg12scp : register_32bit port map ( WD3 , clk , dectemp(12) ,reg12temp);
+reg13scp : register_32bit port map ( WD3 , clk , dectemp(13) ,reg13temp);
+reg14scp : register_32bit port map ( WD3 , clk , dectemp(14) ,reg14temp);
+reg15scp : r15scp port map ( r15 , clk , reg15temp);
+ 
+--registers--
+
+mux1out : mux16_1 port map (reg0temp , reg1temp , reg2temp , reg3temp , reg4temp , reg5temp , reg6temp ,reg7temp
+                            ,reg8temp , reg9temp , reg10temp , reg11temp , reg12temp , reg13temp , reg14temp , reg15temp , A1 , RD1 );
+
+mux2out : mux16_1 port map (reg0temp , reg1temp , reg2temp , reg3temp , reg4temp , reg5temp , reg6temp ,reg7temp
+                            ,reg8temp , reg9temp , reg10temp , reg11temp , reg12temp , reg13temp , reg14temp , reg15temp , A2 , RD2 );
+end rtl;
