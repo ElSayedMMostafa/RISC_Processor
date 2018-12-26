@@ -1,0 +1,34 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+
+entity mux16_1 is
+port ( d0sig,d1sig,d2sig,d3sig,d4sig,d5sig,d6sig,d7sig : in std_logic_vector( 31 downto 0 );
+      d8sig,d9sig,d10sig,d11sig,d12sig,d13sig,d14sig,d15sig : in std_logic_vector( 31 downto 0 );
+       s : in std_logic_vector( 3 downto 0 );
+       y : out std_logic_vector(31 downto 0) ) ;
+end mux16_1 ;
+architecture rtl of mux16_1 is
+ begin
+ process (s,d0sig,d1sig,d2sig,d3sig,d4sig,d5sig,d6sig,d7sig,d8sig,d9sig,d10sig,d11sig,d12sig,d13sig,d14sig,d15sig )
+  begin 
+    case s is 
+       when "0000" => y <= d0sig;
+       when "0001" => y <= d1sig;
+       when "0010" => y <= d2sig;
+       when "0011" => y <= d3sig;
+       when "0100" => y <= d4sig;
+       when "0101" => y <= d5sig;
+       when "0110" => y <= d6sig;
+       when "0111" => y <= d7sig;
+       when "1000" => y <= d8sig;
+       when "1001" => y <= d9sig;
+       when "1010" => y <= d10sig;
+       when "1011" => y <= d11sig;
+       when "1100" => y <= d12sig;
+       when "1101" => y <= d13sig;
+       when "1110" => y <= d14sig;
+       when others  => y <= d15sig;   
+    end case;
+   end process;
+  end rtl ;
