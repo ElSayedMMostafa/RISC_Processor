@@ -1,0 +1,18 @@
+library ieee ;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+
+entity r15scp is 
+port ( regin     : in std_logic_vector (31 downto 0);
+       clk    : in std_logic;
+       regout : out std_logic_vector (31 downto 0));
+end entity;
+architecture rtl of r15scp is 
+begin 
+process (clk)
+begin 
+if (rising_edge(clk)) then 
+regout <= regin ;
+end if;
+end process;
+end rtl;
