@@ -1,0 +1,20 @@
+library IEEE; 
+use IEEE.STD_LOGIC_1164.all;
+entity extend is
+port(Instr: in STD_LOGIC_VECTOR(23 downto 0);
+ImmSrc: in STD_LOGIC_VECTOR(1 downto 0);
+ExtImm: out STD_LOGIC_VECTOR(31 downto 0));
+end;
+architecture behave of extend is
+begin
+process(Instr,ImmSrc) 
+begin
+case ImmSrc is
+when "00" => ExtImm <= (X"000000"& Instr(7 downto 0));
+when "01" => ExtImm <= (X"00000"& Instr(11 downto 0));
+when "10" => ExtImm <= (Instr(23)& Instr(23)& Instr(23)& Instr(23)& Instr(23)& Instr(23)&
+Instr(23 downto 0)& "00");
+when others => ExtImm <= ("--------------------------------");
+end case;
+end process;
+end;
