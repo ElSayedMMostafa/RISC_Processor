@@ -1,0 +1,22 @@
+library ieee ;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+
+entity register_32bit is 
+port ( regin     : in std_logic_vector (31 downto 0);
+       clk    : in std_logic;
+       en     : in std_logic;
+       regout : out std_logic_vector (31 downto 0));
+end entity;
+architecture rtl of register_32bit is 
+begin 
+process (clk)
+begin 
+if (rising_edge(clk)) then 
+if (en = '1') then 
+
+regout <= regin ;
+end if;
+end if;
+end process;
+end rtl;
