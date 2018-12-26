@@ -1,0 +1,41 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+
+entity conditional_logic is
+port(clk,reset:in std_logic;
+     Cond,ALUFlags:in std_logic_vector(3 downto 0);
+     FlagW:in std_logic_vector(1 downto 0);
+     PCS,RegW,MemW:in std_logic;
+     PCsrc,RegWrite,MemWrite: out std_logic);             
+end entity;
+
+architecture rtl of conditional_logic is
+
+component conditional_check is
+port(Cond,Flags: in std_logic_vector(3 downto 0);
+     CondEx: out std_logic);
+end component;
+
+component flopenr is
+generic(width: integer);
+port(clk,reset,en:in std_logic;
+     d:in std_logic_vector (width-1 downto 0);
+     q:out std_logic_vector (width-1 downto 0));
+end component;
+--SIGNALS--
+signal Flags: std_logic_vector (3 downto 0);
+signal FlagWrite: std_logic_vector (1 downto 0);
+signal CondEx: std_logic;
+begin
+flagreg1: flopenr generic map(2)
+                port map(clk,reset,FlagWrite(1),AluFlags(3 downto 2),Flags(3 downto 2));
+flagreg0: flopenr generic map(2)
+                port map(clk,reset,FlagWrite(0),AluFlags(1 downto 0),Flags(1 downto 0));
+condcheck: conditional_check port map(Cond,Flags,CondEx);
+
+FlagWrite <= FlagW and (CondEx, CondEx);
+RegWrite <= RegW and CondEx;
+MemWrite <= MemW and CondEx;
+PCsrc <= PCS and CondEx;
+end rtl;
