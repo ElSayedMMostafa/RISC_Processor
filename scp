@@ -1,0 +1,45 @@
+library IEEE; 
+use IEEE.STD_LOGIC_1164.all;
+entity scp is 
+port(clk, reset: in STD_LOGIC;
+     PC: out STD_LOGIC_VECTOR(31 downto 0);
+     Instr: in STD_LOGIC_VECTOR(31 downto 0);
+     MemWrite: out STD_LOGIC;
+     ALUResult, WriteData: out STD_LOGIC_VECTOR(31 downto 0);
+     ReadData: in STD_LOGIC_VECTOR(31 downto 0));
+end entity;
+
+architecture rtl of scp is 
+component controller is
+port(clk,reset: in std_logic;
+     Instr:in  std_logic_vector(31 downto 12);
+     ALUFlags: in std_logic_vector(3 downto 0);
+     RegSrc: out std_logic_vector(1 downto 0);
+     RegWrite:out std_logic;
+     ImmSrc: out std_logic_vector(1 downto 0);
+     AlUSrc: out std_logic;
+     ALUControl: out std_logic_vector(1 downto 0);
+     MemWrite,MemtoReg,PCSrc: out std_logic); 
+end component;
+component datapath is
+port(clk,reset:in std_logic;
+     RegSrc:in std_logic_vector(1 downto 0);
+     RegWrite:in std_logic;
+     ImmSrc:in std_logic_vector(1 downto 0);
+     ALUSrc:in std_logic;
+     ALUControl:in std_logic_vector(1 downto 0);
+     MemtoReg:in std_logic;
+     PCSrc:in std_logic;
+     ALUFlags:out std_logic_vector(3 downto 0);
+     PC:out std_logic_vector(31 downto 0);
+     Instr:in std_logic_vector(31 downto 0);
+     ALUResult,WriteData:out std_logic_vector(31 downto 0);
+     ReadData:in std_logic_vector(31 downto 0));
+end component;
+signal RegWrite, ALUSrc, MemtoReg, PCSrc: STD_LOGIC;
+signal RegSrc, ImmSrc, ALUControl: STD_LOGIC_VECTOR(1 downto 0);
+signal ALUFlags: STD_LOGIC_VECTOR(3 downto 0);
+begin
+cont: controller port map(clk, reset, Instr(31 downto 12),ALUFlags, RegSrc, RegWrite,ImmSrc, ALUSrc, ALUControl,MemWrite, MemtoReg, PCSrc);
+dp: datapath port map(clk, reset, RegSrc, RegWrite, ImmSrc,ALUSrc, ALUControl, MemtoReg, PCSrc,ALUFlags, PC, Instr, ALUResult,WriteData, ReadData);
+end rtl;
