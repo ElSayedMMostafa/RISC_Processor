@@ -1,0 +1,79 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+
+entity datapath is
+port(clk,reset:in std_logic;
+     RegSrc:in std_logic_vector(1 downto 0);
+     RegWrite:in std_logic;
+     ImmSrc:in std_logic_vector(1 downto 0);
+     ALUSrc:in std_logic;
+     ALUControl:in std_logic_vector(1 downto 0);
+     MemtoReg:in std_logic;
+     PCSrc:in std_logic;
+     ALUFlags:out std_logic_vector(3 downto 0);
+     PC:out std_logic_vector(31 downto 0);
+     Instr:in std_logic_vector(31 downto 0);
+     ALUResult,WriteData:out std_logic_vector(31 downto 0);
+     ReadData:in std_logic_vector(31 downto 0));
+end entity;
+
+architecture rtl of datapath is
+component ALU is
+port(A: in std_logic_vector (31 downto 0);
+     B: in std_logic_vector (31 downto 0);
+     CTR: in std_logic_vector (1 downto 0);
+     Result: out std_logic_vector (31 downto 0);
+     ALUFlags: out std_logic_vector(3 downto 0)); --N,Z,C,V--
+end component;
+component registerfile is 
+port( clk ,WE3 : in  std_logic;
+      A1,A2,A3 : in  std_logic_vector (3  downto 0);
+      WD3,R15  : in  std_logic_vector (31 downto 0);
+      RD1,RD2  : out std_logic_vector (31 downto 0));
+end component;
+component adder is
+port(a, b: in STD_LOGIC_VECTOR(31 downto 0);
+y: out STD_LOGIC_VECTOR(31 downto 0));
+end component;
+component flopr is
+generic(width: integer);
+port(clk,reset:in std_logic;
+     d:in std_logic_vector (width-1 downto 0);
+     q:out std_logic_vector (width-1 downto 0));
+end component;
+component extend is
+port(Instr: in STD_LOGIC_VECTOR(23 downto 0);
+     ImmSrc: in STD_LOGIC_VECTOR(1 downto 0);
+     ExtImm: out STD_LOGIC_VECTOR(31 downto 0));
+end component;
+component mux2_1 is 
+	generic(width:integer);
+	port(d0,d1: in std_logic_vector(width-1 downto 0);
+	     s: in std_logic;
+	     y: out std_logic_vector(width-1 downto 0));
+end component;
+signal PCNext, PCPlus4,PCPlus8: STD_LOGIC_VECTOR(31 downto 0);
+signal ExtImm, Result: STD_LOGIC_VECTOR(31 downto 0);
+signal WriteData_temp,PC_temp, ALUResult_temp: STD_LOGIC_VECTOR(31 downto 0);
+signal SrcA, SrcB: STD_LOGIC_VECTOR(31 downto 0);
+signal RA1, RA2: STD_LOGIC_VECTOR(3 downto 0);
+begin
+-- next PC logic
+pcmux: mux2_1 generic map(32) port map(PCPlus4, Result, PCSrc, PCNext);
+pcreg: flopr generic map(32) port map(clk, reset, PCNext, PC_temp);
+pcadd1: adder port map(PC_temp, X"00000004", PCPlus4);
+pcadd2: adder port map(PCPlus4, X"00000004", PCPlus8);
+-- register file logic
+ra1mux: mux2_1 generic map (4) port map(Instr(19 downto 16), "1111", RegSrc(0), RA1);
+ra2mux: mux2_1 generic map (4) port map(Instr(3 downto 0),Instr(15 downto 12), RegSrc(1), RA2);
+rf: registerfile port map(clk, RegWrite, RA1, RA2,Instr(15 downto 12), Result,PCPlus8, SrcA, WriteData_temp);
+resmux: mux2_1 generic map(32)port map(ALUResult_temp, ReadData, MemtoReg, Result);
+ext: extend port map(Instr(23 downto 0), ImmSrc, ExtImm);
+-- ALU logic
+srcbmux: mux2_1 generic map(32)port map(WriteData_temp, ExtImm, ALUSrc, SrcB);
+i_alu: ALU port map(SrcA, SrcB, ALUControl, ALUResult_temp,ALUFlags);
+PC<=PC_temp;
+WriteData<=WriteData_temp;
+ALUResult<=ALUResult_temp;
+end rtl;
