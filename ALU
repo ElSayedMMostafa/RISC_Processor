@@ -1,0 +1,38 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.STD_LOGIC_arith.all;
+
+entity ALU is
+port(A: in std_logic_vector (31 downto 0);
+     B: in std_logic_vector (31 downto 0);
+     CTR: in std_logic_vector (1 downto 0);
+     Result: out std_logic_vector (31 downto 0);
+     ALUFlags: out std_logic_vector(3 downto 0)); --N,Z,C,V--
+end entity;
+
+architecture rtl of ALU is
+signal Result_temp: std_logic_vector(32 downto 0);
+begin
+process (CTR,A,B)
+begin
+case(CTR) is
+when "00" =>
+ Result_temp<= ("0" & unsigned(A))+("0" & unsigned(B));
+when "01" =>
+ Result_temp<= ("0" & unsigned(A))-("0" & unsigned(B));
+when "10" =>
+ Result_temp<=("0" & A)and("0" & B);
+when others =>
+ Result_temp<=("0" & A)or("0" & B);
+end case;
+if (Result_temp="000000000000000000000000000000000") then --Define Zero FLAG---
+ ALUFlags(2)<='1';                  
+  else
+ ALUFlags(2)<='0';
+  end if;
+end process;
+ALUFlags(0) <= CTR(1) and (Result_temp(31) xor A(31-1))and(A(31)xnor B(31) xnor CTR(0));
+ALUFlags(1)<=Result_temp(32);
+ALUFlags(3)<=Result_temp(31);
+Result<=Result_temp(31 downto 0);
+end rtl;
