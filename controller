@@ -1,0 +1,42 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.STD_LOGIC_ARITH.all;
+
+entity controller is
+port(clk,reset: in std_logic;
+     Instr:in  std_logic_vector(31 downto 12);
+     ALUFlags: in std_logic_vector(3 downto 0);
+     RegSrc: out std_logic_vector(1 downto 0);
+     RegWrite:out std_logic;
+     ImmSrc: out std_logic_vector(1 downto 0);
+     AlUSrc: out std_logic;
+     ALUControl: out std_logic_vector(1 downto 0);
+     MemWrite,MemtoReg,PCSrc: out std_logic); 
+end entity;
+
+architecture rtl of controller is
+component conditional_logic is
+port(clk,reset:in std_logic;
+     Cond,ALUFlags:in std_logic_vector(3 downto 0);
+     FlagW:in std_logic_vector(1 downto 0);
+     PCS,RegW,MemW:in std_logic;
+     PCsrc,RegWrite,MemWrite: out std_logic);             
+end component;
+
+component decoder is -- main control decoder
+port(Op: in STD_LOGIC_VECTOR(1 downto 0);
+    Funct: in STD_LOGIC_VECTOR(5 downto 0);
+    Rd: in STD_LOGIC_VECTOR(3 downto 0);
+    FlagW: out STD_LOGIC_VECTOR(1 downto 0);
+    PCS, RegW, MemW: out STD_LOGIC;
+    MemtoReg, ALUSrc: out STD_LOGIC;
+    ImmSrc, RegSrc: out STD_LOGIC_VECTOR(1 downto 0);
+    ALUControl: out STD_LOGIC_VECTOR(1 downto 0));
+end component;
+
+signal FlagW: std_logic_vector(1 downto 0);
+signal PCS,MemW,RegW: std_logic;
+begin
+dec: decoder port map(Instr(27 downto 26),Instr(25 downto 20),Instr(15 downto 12),FlagW,PCS,RegW,MemW,MemtoReg,ALUSrc,ImmSrc,RegSrc,ALUControl);
+condlogic: conditional_logic port map(clk,reset,Instr(31 downto 28),ALUFlags,FlagW,PCS,RegW,MemW,PCSrc,RegWrite,MemWrite);
+end rtl;
