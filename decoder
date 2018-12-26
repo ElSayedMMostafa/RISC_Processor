@@ -1,0 +1,51 @@
+library IEEE; use IEEE.STD_LOGIC_1164.all;
+entity decoder is -- main control decoder
+port(Op: in STD_LOGIC_VECTOR(1 downto 0);
+Funct: in STD_LOGIC_VECTOR(5 downto 0);
+Rd: in STD_LOGIC_VECTOR(3 downto 0);
+FlagW: out STD_LOGIC_VECTOR(1 downto 0);
+PCS, RegW, MemW: out STD_LOGIC;
+MemtoReg, ALUSrc: out STD_LOGIC;
+ImmSrc, RegSrc: out STD_LOGIC_VECTOR(1 downto 0);
+ALUControl: out STD_LOGIC_VECTOR(1 downto 0));
+end;
+
+architecture behave of decoder is
+signal controls: STD_LOGIC_VECTOR(9 downto 0);
+signal ALUOp, Branch,RegW_temp: STD_LOGIC;
+signal op2: STD_LOGIC_VECTOR(3 downto 0);
+signal ALUControl_temp: STD_LOGIC_VECTOR(1 downto 0);
+begin
+op2 <= (Op(1),Op(0), Funct(5), Funct(0));
+process(Op,Funct,Rd) begin -- Main Decoder
+case (op2) is
+when "000-" => controls <= "0000001001";
+when "001-" => controls <= "0000101001";
+when "01-0" => controls <= "1001110100";
+when "01-1" => controls <= "0001111000";
+when "10--" => controls <= "0110100010";
+when others => controls <= "----------";
+end case;
+end process;
+(RegSrc(1),RegSrc(0),ImmSrc(1),ImmSrc(0), ALUSrc, MemtoReg, RegW, MemW,
+Branch, ALUOp) <= controls;
+process(Op,Funct,Rd) begin -- ALU Decoder
+if (ALUOp='1') then
+case Funct(4 downto 1) is
+when "0100" => ALUControl_temp <= "00"; -- ADD
+when "0010" => ALUControl_temp <= "01"; -- SUB
+when "0000" => ALUControl_temp <= "10"; -- AND
+when "1100" => ALUControl_temp <= "11"; -- ORR
+when others => ALUControl_temp <= "--"; -- unimplemented
+end case;
+FlagW(1) <= Funct(0);
+FlagW(0) <= Funct(0) and (not ALUControl_temp(1));
+else
+ALUControl <= "00";
+FlagW <= "00";
+end if;
+end process;
+PCS <= (Rd(3)and Rd(2)and Rd(1) and Rd(0) and RegW_temp) or Branch;
+ALUControl<=ALUControl_temp;
+RegW<=RegW_temp;
+end;
